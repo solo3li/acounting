@@ -304,7 +304,7 @@ export default function TransactionsScreen({ navigation }: any) {
                   </View>
                   {receiptImage && (
                     <View style={styles.previewContainer}>
-                      <Image source={{ uri: `data:image/jpeg;base64,${receiptImage}` }} style={styles.previewImg} />
+                      <Image source={{ uri: 'data:image/jpeg;base64,' + receiptImage }} style={styles.previewImg} />
                       <TouchableOpacity style={styles.removeImgBtn} onPress={() => setReceiptImage(null)}>
                         <Ionicons name="close-circle" size={24} color="#f87171" />
                       </TouchableOpacity>

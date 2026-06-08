@@ -89,7 +89,7 @@ export default function TransactionDetailsScreen({ route, navigation }: any) {
           <View style={styles.receiptContainer}>
             <Text style={styles.receiptTitle}>الإيصال المرفق</Text>
             <Image 
-              source={{ uri: `data:image/jpeg;base64,${transaction.receiptImage}` }}
+              source={{ uri: 'data:image/jpeg;base64,' + transaction.receiptImage }}
               style={styles.receiptImage} 
               resizeMode="contain" 
             />
