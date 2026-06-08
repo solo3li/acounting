@@ -34,8 +34,9 @@ export default function SettingsScreen({ setToken }: any) {
         headers: { Authorization: `Bearer ${token}` }
       });
       Alert.alert('Success', 'Telegram Bot Token saved successfully!');
-    } catch (e) {
-      Alert.alert('Error', 'Failed to save settings.');
+    } catch (e: any) {
+      const errorMsg = e.response?.data?.message || 'Failed to save settings.';
+      Alert.alert('Error', errorMsg);
     }
     setLoading(false);
   };
