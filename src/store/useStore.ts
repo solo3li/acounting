@@ -13,10 +13,12 @@ interface Account {
 interface Transaction {
   id: number;
   accountId: number;
+  toAccountId?: number;
   type: string;
   amount: number;
-  notes: string;
   date: string;
+  notes?: string;
+  receiptImage?: string;
 }
 
 interface AppState {

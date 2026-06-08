@@ -10,8 +10,6 @@ import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import AccountsScreen from './src/screens/AccountsScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
-import ReportsScreen from './src/screens/ReportsScreen';
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -25,7 +23,6 @@ function MainTabNavigator({ setToken }: { setToken: (token: string | null) => vo
           if (route.name === 'Dashboard') iconName = focused ? 'home' : 'home-outline';
           else if (route.name === 'Accounts') iconName = focused ? 'wallet' : 'wallet-outline';
           else if (route.name === 'Transactions') iconName = focused ? 'swap-horizontal' : 'swap-horizontal-outline';
-          else if (route.name === 'Reports') iconName = focused ? 'pie-chart' : 'pie-chart-outline';
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#4facfe',
@@ -52,7 +49,6 @@ function MainTabNavigator({ setToken }: { setToken: (token: string | null) => vo
       </Tab.Screen>
       <Tab.Screen name="Accounts" component={AccountsScreen} />
       <Tab.Screen name="Transactions" component={TransactionsScreen} />
-      <Tab.Screen name="Reports" component={ReportsScreen} />
     </Tab.Navigator>
   );
 }
