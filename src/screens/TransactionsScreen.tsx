@@ -8,7 +8,7 @@ import { API_URL } from '../utils/config';
 import { useStore } from '../store/useStore';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function TransactionsScreen() {
+export default function TransactionsScreen({ navigation }: any) {
   const { transactions, accounts, fetchTransactions, fetchAccounts, loading } = useStore();
   
   const [modalVisible, setModalVisible] = useState(false);
@@ -166,26 +166,28 @@ export default function TransactionsScreen() {
           }
 
           return (
-            <LinearGradient colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)']} style={styles.card}>
-              <View style={[styles.iconWrapper, { backgroundColor: iconBg }]}>
-                <Ionicons name={iconName} size={20} color={iconColor} />
-              </View>
-              <View style={styles.cardMiddle}>
-                <Text style={styles.cardType}>{item.type}</Text>
-                <Text style={styles.cardSub}>
-                  {item.type === 'Transfer' ? `${accName} → ${toAccName}` : accName} • {new Date(item.date).toLocaleDateString()}
-                </Text>
-              </View>
-              <View style={styles.cardRight}>
-                <Text style={[styles.cardAmount, { color: iconColor }]}>
-                  {amountPrefix}${item.amount.toFixed(2)}
-                </Text>
-                {item.notes ? <Text style={styles.cardSubRight}>{item.notes}</Text> : null}
-                {item.receiptImage ? (
-                  <Ionicons name="image-outline" size={16} color="#38bdf8" style={{ marginTop: 4 }} />
-                ) : null}
-              </View>
-            </LinearGradient>
+            <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('TransactionDetails', { transaction: item })}>
+              <LinearGradient colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)']} style={styles.card}>
+                <View style={[styles.iconWrapper, { backgroundColor: iconBg }]}>
+                  <Ionicons name={iconName} size={20} color={iconColor} />
+                </View>
+                <View style={styles.cardMiddle}>
+                  <Text style={styles.cardType}>{item.type}</Text>
+                  <Text style={styles.cardSub}>
+                    {item.type === 'Transfer' ? `${accName} → ${toAccName}` : accName} • {new Date(item.date).toLocaleDateString()}
+                  </Text>
+                </View>
+                <View style={styles.cardRight}>
+                  <Text style={[styles.cardAmount, { color: iconColor }]}>
+                    {amountPrefix}${(item.amount || 0).toFixed(2)}
+                  </Text>
+                  {item.notes ? <Text style={styles.cardSubRight}>{item.notes}</Text> : null}
+                  {item.receiptImage ? (
+                    <Ionicons name="image-outline" size={16} color="#38bdf8" style={{ marginTop: 4 }} />
+                  ) : null}
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
           );
         }}
       />
