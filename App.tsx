@@ -11,6 +11,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import AccountsScreen from './src/screens/AccountsScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import TransactionDetailsScreen from './src/screens/TransactionDetailsScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -25,6 +26,7 @@ function MainTabNavigator({ setToken }: { setToken: (token: string | null) => vo
           if (route.name === 'Dashboard') iconName = focused ? 'home' : 'home-outline';
           else if (route.name === 'Accounts') iconName = focused ? 'wallet' : 'wallet-outline';
           else if (route.name === 'Transactions') iconName = focused ? 'swap-horizontal' : 'swap-horizontal-outline';
+          else if (route.name === 'Settings') iconName = focused ? 'settings' : 'settings-outline';
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#4facfe',
@@ -51,6 +53,9 @@ function MainTabNavigator({ setToken }: { setToken: (token: string | null) => vo
       </Tab.Screen>
       <Tab.Screen name="Accounts" component={AccountsScreen} />
       <Tab.Screen name="Transactions" component={TransactionsScreen} />
+      <Tab.Screen name="Settings">
+        {props => <SettingsScreen {...props} setToken={setToken} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
