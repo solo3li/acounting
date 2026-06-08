@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import { getTokenAsync } from '../utils/AuthHelper';
@@ -75,32 +75,34 @@ export default function AccountsScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>New Account</Text>
-            
-            <View style={styles.inputContainer}>
-              <Ionicons name="pricetag-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-              <TextInput style={styles.input} placeholder="Account Name" placeholderTextColor="#64748b" value={name} onChangeText={setName} />
-            </View>
-            
-            <View style={styles.inputContainer}>
-              <Ionicons name="grid-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-              <TextInput style={styles.input} placeholder="Account Type (e.g. Instapay)" placeholderTextColor="#64748b" value={type} onChangeText={setType} />
-            </View>
-            
-            <View style={styles.inputContainer}>
-              <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-              <TextInput style={styles.input} placeholder="Initial Balance" placeholderTextColor="#64748b" keyboardType="numeric" value={initialBalance} onChangeText={setInitialBalance} />
-            </View>
-            
-            <TouchableOpacity style={styles.saveBtn} onPress={handleAddAccount}>
-              <LinearGradient colors={['#38bdf8', '#0284c7']} style={styles.saveBtnGradient}>
-                <Text style={styles.btnText}>Create Wallet</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+              <Text style={styles.modalTitle}>New Account</Text>
+              
+              <View style={styles.inputContainer}>
+                <Ionicons name="pricetag-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput style={styles.input} placeholder="Account Name" placeholderTextColor="#64748b" value={name} onChangeText={setName} />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Ionicons name="grid-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput style={styles.input} placeholder="Account Type (e.g. Instapay)" placeholderTextColor="#64748b" value={type} onChangeText={setType} />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput style={styles.input} placeholder="Initial Balance" placeholderTextColor="#64748b" keyboardType="numeric" value={initialBalance} onChangeText={setInitialBalance} />
+              </View>
+              
+              <TouchableOpacity style={styles.saveBtn} onPress={handleAddAccount}>
+                <LinearGradient colors={['#38bdf8', '#0284c7']} style={styles.saveBtnGradient}>
+                  <Text style={styles.btnText}>Create Wallet</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -125,7 +127,7 @@ const styles = StyleSheet.create({
   cardType: { color: '#94a3b8', fontSize: 13 },
   cardBalance: { color: '#38bdf8', fontSize: 22, fontWeight: '900' },
   modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
-  modalContent: { padding: 30, backgroundColor: '#1e293b', borderTopLeftRadius: 35, borderTopRightRadius: 35 },
+  modalContent: { maxHeight: '85%', padding: 30, backgroundColor: '#1e293b', borderTopLeftRadius: 35, borderTopRightRadius: 35 },
   modalHandle: { width: 40, height: 5, backgroundColor: '#475569', borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
   modalTitle: { color: '#f8fafc', fontSize: 24, fontWeight: '800', marginBottom: 25, textAlign: 'center' },
   inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(15,23,42,0.6)', borderRadius: 16, marginBottom: 15, paddingHorizontal: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },

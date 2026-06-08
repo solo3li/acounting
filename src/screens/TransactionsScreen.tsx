@@ -157,67 +157,69 @@ export default function TransactionsScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>New Transaction</Text>
-            
-            <View style={styles.typeSelector}>
-              {['Deposit', 'Withdraw', 'Transfer'].map(t => (
-                <TouchableOpacity 
-                  key={t} 
-                  style={[styles.typeSelectBtn, type === t && styles.typeSelectBtnActive]}
-                  onPress={() => setType(t)}
-                >
-                  <Text style={[styles.typeSelectText, type === t && styles.typeSelectTextActive]}>{t}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+              <Text style={styles.modalTitle}>New Transaction</Text>
+              
+              <View style={styles.typeSelector}>
+                {['Deposit', 'Withdraw', 'Transfer'].map(t => (
+                  <TouchableOpacity 
+                    key={t} 
+                    style={[styles.typeSelectBtn, type === t && styles.typeSelectBtnActive]}
+                    onPress={() => setType(t)}
+                  >
+                    <Text style={[styles.typeSelectText, type === t && styles.typeSelectTextActive]}>{t}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            <Text style={styles.label}>{type === 'Transfer' ? 'From Account:' : 'Select Account:'}</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50 }}>
-              {accounts.map(acc => (
-                <TouchableOpacity 
-                  key={acc.id} 
-                  style={[styles.accBtn, accountId === acc.id && styles.accBtnActive]}
-                  onPress={() => setAccountId(acc.id)}>
-                  <Text style={[styles.accText, accountId === acc.id && styles.accTextActive]}>{acc.name}</Text>
-                </TouchableOpacity>
-              ))}
+              <Text style={styles.label}>{type === 'Transfer' ? 'From Account:' : 'Select Account:'}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50, minHeight: 50 }}>
+                {accounts.map(acc => (
+                  <TouchableOpacity 
+                    key={acc.id} 
+                    style={[styles.accBtn, accountId === acc.id && styles.accBtnActive]}
+                    onPress={() => setAccountId(acc.id)}>
+                    <Text style={[styles.accText, accountId === acc.id && styles.accTextActive]}>{acc.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {type === 'Transfer' && (
+                <>
+                  <Text style={styles.label}>To Account:</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50, minHeight: 50 }}>
+                    {accounts.map(acc => (
+                      <TouchableOpacity 
+                        key={acc.id} 
+                        style={[styles.accBtn, toAccountId === acc.id && styles.accBtnActive, accountId === acc.id && { opacity: 0.5 }]}
+                        onPress={() => setToAccountId(acc.id)}
+                        disabled={accountId === acc.id}>
+                        <Text style={[styles.accText, toAccountId === acc.id && styles.accTextActive]}>{acc.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </>
+              )}
+
+              <View style={styles.inputContainer}>
+                <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput style={styles.input} placeholder="Amount" placeholderTextColor="#64748b" keyboardType="numeric" value={amount} onChangeText={setAmount} />
+              </View>
+              <View style={styles.inputContainer}>
+                <Ionicons name="document-text-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput style={styles.input} placeholder="Notes (optional)" placeholderTextColor="#64748b" value={notes} onChangeText={setNotes} />
+              </View>
+              
+              <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
+                <LinearGradient colors={['#8b5cf6', '#6d28d9']} style={styles.saveBtnGradient}>
+                  <Text style={styles.btnText}>Add Transaction</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
             </ScrollView>
-
-            {type === 'Transfer' && (
-              <>
-                <Text style={styles.label}>To Account:</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50 }}>
-                  {accounts.map(acc => (
-                    <TouchableOpacity 
-                      key={acc.id} 
-                      style={[styles.accBtn, toAccountId === acc.id && styles.accBtnActive, accountId === acc.id && { opacity: 0.5 }]}
-                      onPress={() => setToAccountId(acc.id)}
-                      disabled={accountId === acc.id}>
-                      <Text style={[styles.accText, toAccountId === acc.id && styles.accTextActive]}>{acc.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </>
-            )}
-
-            <View style={styles.inputContainer}>
-              <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-              <TextInput style={styles.input} placeholder="Amount" placeholderTextColor="#64748b" keyboardType="numeric" value={amount} onChangeText={setAmount} />
-            </View>
-            <View style={styles.inputContainer}>
-              <Ionicons name="document-text-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-              <TextInput style={styles.input} placeholder="Notes (optional)" placeholderTextColor="#64748b" value={notes} onChangeText={setNotes} />
-            </View>
-            
-            <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
-              <LinearGradient colors={['#8b5cf6', '#6d28d9']} style={styles.saveBtnGradient}>
-                <Text style={styles.btnText}>Add Transaction</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -254,7 +256,7 @@ const styles = StyleSheet.create({
   cardAmount: { fontSize: 18, fontWeight: '900' },
   cardSubRight: { color: '#64748b', fontSize: 12, marginTop: 4 },
   modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
-  modalContent: { padding: 30, backgroundColor: '#1e293b', borderTopLeftRadius: 35, borderTopRightRadius: 35 },
+  modalContent: { maxHeight: '85%', padding: 30, backgroundColor: '#1e293b', borderTopLeftRadius: 35, borderTopRightRadius: 35 },
   modalHandle: { width: 40, height: 5, backgroundColor: '#475569', borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
   modalTitle: { color: '#f8fafc', fontSize: 24, fontWeight: '800', marginBottom: 25, textAlign: 'center' },
   label: { color: '#cbd5e1', fontWeight: '600', marginBottom: 10, marginLeft: 5 },
