@@ -75,6 +75,11 @@ export default function TransactionDetailsScreen({ route, navigation }: any) {
           )}
           <View style={styles.divider} />
           <View style={styles.row}>
+            <Text style={styles.rowLabel}>Web Mgmt ID</Text>
+            <Text style={styles.rowValue}>{transaction.webManagementId || '-'}</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.row}>
             <Text style={styles.rowLabel}>Notes</Text>
             <Text style={styles.rowValue}>{transaction.notes || 'No notes provided'}</Text>
           </View>

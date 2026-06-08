@@ -19,6 +19,7 @@ interface Transaction {
   date: string;
   notes?: string;
   receiptImage?: string;
+  webManagementId?: string;
 }
 
 interface AppState {
@@ -26,7 +27,7 @@ interface AppState {
   transactions: Transaction[];
   loading: boolean;
   fetchAccounts: () => Promise<void>;
-  fetchTransactions: (accountId?: number, type?: string) => Promise<void>;
+  fetchTransactions: (accountId?: number, type?: string, webManagementId?: string) => Promise<void>;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -46,13 +47,14 @@ export const useStore = create<AppState>((set) => ({
       set({ loading: false });
     }
   },
-  fetchTransactions: async (accountId?: number, type?: string) => {
+  fetchTransactions: async (accountId?: number, type?: string, webManagementId?: string) => {
     set({ loading: true });
     try {
       const token = await getTokenAsync();
       let url = `${API_URL}/transactions?`;
       if (accountId) url += `accountId=${accountId}&`;
-      if (type) url += `type=${type}`;
+      if (type) url += `type=${type}&`;
+      if (webManagementId) url += `webManagementId=${webManagementId}&`;
       
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }

@@ -14,6 +14,7 @@ export default function TransactionsScreen({ navigation }: any) {
   const [modalVisible, setModalVisible] = useState(false);
   const [filterType, setFilterType] = useState<string>('');
   const [filterAccountId, setFilterAccountId] = useState<number | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Form State
   const [amount, setAmount] = useState('');
@@ -21,12 +22,13 @@ export default function TransactionsScreen({ navigation }: any) {
   const [accountId, setAccountId] = useState<number | undefined>(undefined);
   const [toAccountId, setToAccountId] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState('');
+  const [webManagementId, setWebManagementId] = useState('');
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAccounts();
-    fetchTransactions(filterAccountId, filterType);
-  }, [filterAccountId, filterType]);
+    fetchTransactions(filterAccountId, filterType, searchQuery);
+  }, [filterAccountId, filterType, searchQuery]);
 
   useEffect(() => {
     if (accounts.length > 0) {
@@ -74,6 +76,10 @@ export default function TransactionsScreen({ navigation }: any) {
       Alert.alert('Error', 'Please select a valid destination account for the transfer');
       return;
     }
+    if (type === 'Withdraw' && !webManagementId.trim()) {
+      Alert.alert('Error', 'Web Management ID is required for withdrawals');
+      return;
+    }
 
     try {
       const token = await getTokenAsync();
@@ -83,6 +89,7 @@ export default function TransactionsScreen({ navigation }: any) {
         accountId,
         toAccountId: type === 'Transfer' ? toAccountId : null,
         notes,
+        webManagementId,
         receiptImage: receiptImage || ''
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -90,8 +97,9 @@ export default function TransactionsScreen({ navigation }: any) {
       setModalVisible(false);
       setAmount('');
       setNotes('');
+      setWebManagementId('');
       setReceiptImage(null);
-      fetchTransactions(filterAccountId, filterType);
+      fetchTransactions(filterAccountId, filterType, searchQuery);
       fetchAccounts(); 
     } catch (e) {
       Alert.alert('Error', 'Failed to add transaction');
@@ -107,6 +115,19 @@ export default function TransactionsScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addBtn}>
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
+      </View>
+
+      <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#94a3b8" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by Web Management ID..."
+            placeholderTextColor="#94a3b8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -249,6 +270,17 @@ export default function TransactionsScreen({ navigation }: any) {
                 <TextInput style={styles.input} placeholder="Notes (optional)" placeholderTextColor="#64748b" value={notes} onChangeText={setNotes} />
               </View>
 
+              <View style={styles.inputContainer}>
+                <Ionicons name="finger-print-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+                <TextInput 
+                  style={styles.input} 
+                  placeholder={type === 'Withdraw' ? "Web Management ID (Required)" : "Web Management ID (Optional)"}
+                  placeholderTextColor={type === 'Withdraw' ? "#f87171" : "#64748b"} 
+                  value={webManagementId} 
+                  onChangeText={setWebManagementId} 
+                />
+              </View>
+
               {type === 'Withdraw' && (
                 <View style={styles.imagePickerContainer}>
                   <Text style={styles.label}>Receipt / Image (optional):</Text>
@@ -296,6 +328,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 25, paddingTop: 60 },
   headerTitle: { fontSize: 28, fontWeight: '800', color: '#f8fafc' },
   addBtn: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#8b5cf6', justifyContent: 'center', alignItems: 'center', shadowColor: '#8b5cf6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8 },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(15,23,42,0.6)', borderRadius: 16, paddingHorizontal: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  searchInput: { flex: 1, color: '#f8fafc', paddingVertical: 12, fontSize: 14, marginLeft: 10 },
   filtersContainer: { paddingHorizontal: 20, marginBottom: 10 },
   filterScroll: { marginBottom: 15 },
   filterBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },

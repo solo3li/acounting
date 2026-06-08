@@ -52,6 +52,7 @@ export default function DashboardScreen({ navigation, setToken }: any) {
           <td style="padding: 12px; border-bottom: 1px solid #eee; color:${t.type === 'Deposit' ? 'green' : t.type === 'Withdraw' ? 'red' : 'blue'}">${t.type}</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee;">${accName}</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee;">${toAccName}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${t.webManagementId || '-'}</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold;">$${t.amount.toFixed(2)}</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${t.notes || ''}</td>
           <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${t.receiptImage ? 'Yes' : 'No'}</td>
@@ -90,6 +91,7 @@ export default function DashboardScreen({ navigation, setToken }: any) {
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Type</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">From Account</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">To Account</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Web Mgmt ID</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Amount</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Notes</th>
                 <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Receipt</th>
@@ -137,6 +139,7 @@ export default function DashboardScreen({ navigation, setToken }: any) {
         "Type": t.type,
         "From Account": accounts.find((a: any) => a.id === t.accountId)?.name || 'Unknown',
         "To Account": t.toAccountId ? (accounts.find((a: any) => a.id === t.toAccountId)?.name || 'Unknown') : '-',
+        "Web Mgmt ID": t.webManagementId || '-',
         "Amount": t.amount,
         "Notes": t.notes || '',
         "Has Receipt": t.receiptImage ? 'Yes' : 'No'
