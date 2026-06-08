@@ -5,9 +5,11 @@ import axios from 'axios';
 import { getTokenAsync } from '../utils/AuthHelper';
 import { API_URL } from '../utils/config';
 import { useStore } from '../store/useStore';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function AccountsScreen() {
+  const navigation = useNavigation();
   const { accounts, fetchAccounts, loading } = useStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [name, setName] = useState('');
@@ -58,16 +60,18 @@ export default function AccountsScreen() {
         onRefresh={fetchAccounts}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <LinearGradient colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)']} style={styles.card}>
-            <View style={styles.cardIcon}>
-              <Ionicons name="wallet" size={28} color="#38bdf8" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardType}>{item.type}</Text>
-            </View>
-            <Text style={styles.cardBalance}>${item.currentBalance.toFixed(2)}</Text>
-          </LinearGradient>
+          <TouchableOpacity onPress={() => (navigation as any).navigate('AccountDetails', { account: item })}>
+            <LinearGradient colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)']} style={styles.card}>
+              <View style={styles.cardIcon}>
+                <Ionicons name="wallet" size={28} color="#38bdf8" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardTitle}>{item.name}</Text>
+                <Text style={styles.cardType}>{item.type}</Text>
+              </View>
+              <Text style={styles.cardBalance}>${item.currentBalance.toFixed(2)}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
         )}
       />
 

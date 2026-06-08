@@ -11,6 +11,7 @@ import DashboardScreen from './src/screens/DashboardScreen';
 import AccountsScreen from './src/screens/AccountsScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
 import TransactionDetailsScreen from './src/screens/TransactionDetailsScreen';
+import AccountDetailsScreen from './src/screens/AccountDetailsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
@@ -82,6 +83,7 @@ export default function App() {
               {props => <MainTabNavigator {...props} setToken={setUserToken} />}
             </Stack.Screen>
             <Stack.Screen name="TransactionDetails" component={TransactionDetailsScreen} />
+            <Stack.Screen name="AccountDetails" component={AccountDetailsScreen} />
           </Stack.Group>
         )}
       </Stack.Navigator>
