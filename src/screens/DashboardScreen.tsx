@@ -12,44 +12,87 @@ import { useStore } from '../store/useStore';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function DashboardScreen({ navigation, setToken }: any) {
-  const { accounts, fetchAccounts, loading } = useStore();
+  const { accounts, transactions, fetchAccounts, fetchTransactions, loading } = useStore();
   const [exportLoading, setExportLoading] = React.useState(false);
 
   useEffect(() => {
     fetchAccounts();
+    fetchTransactions();
   }, []);
-
-  const fetchTransactions = async () => {
-    const token = await getTokenAsync();
-    const res = await axios.get(`${API_URL}/transactions`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    return res.data;
-  };
 
   const exportPDF = async () => {
     setExportLoading(true);
     try {
-      const data = await fetchTransactions();
-      const rows = data.map((t: any) => `
+      if (!transactions || transactions.length === 0) {
+        Alert.alert('Info', 'No transactions to export.');
+        setExportLoading(false);
+        return;
+      }
+
+      const accountRows = accounts.map((a: any) => `
         <tr>
-          <td>${new Date(t.date).toLocaleDateString()}</td>
-          <td style="color:${t.type === 'Deposit' ? 'green' : 'red'}">${t.type}</td>
-          <td>$${t.amount.toFixed(2)}</td>
-          <td>${t.notes || ''}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${a.id}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">${a.name}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">${a.type}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">$${(a.initialBalance || 0).toFixed(2)}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold;">$${a.currentBalance.toFixed(2)}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''}</td>
         </tr>
       `).join('');
+
+      const totalBalance = accounts.reduce((sum: number, a: any) => sum + a.currentBalance, 0);
+
+      const rows = transactions.map((t: any) => {
+        const accName = accounts.find((a: any) => a.id === t.accountId)?.name || 'Unknown';
+        const toAccName = t.toAccountId ? (accounts.find((a: any) => a.id === t.toAccountId)?.name || 'Unknown') : '-';
+        return `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${t.id}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">${new Date(t.date).toLocaleDateString()} ${new Date(t.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; color:${t.type === 'Deposit' ? 'green' : t.type === 'Withdraw' ? 'red' : 'blue'}">${t.type}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">${accName}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee;">${toAccName}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-weight: bold;">$${t.amount.toFixed(2)}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${t.notes || ''}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #eee; font-size: 12px;">${t.receiptImage ? 'Yes' : 'No'}</td>
+        </tr>
+        `;
+      }).join('');
 
       const html = `
         <html>
           <body style="font-family: Arial, sans-serif; padding: 20px;">
-            <h1 style="color: #333;">Transactions Report</h1>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <h1 style="color: #333;">Cashflow Report</h1>
+            <p style="color: #666;">Generated on ${new Date().toLocaleDateString()}</p>
+            
+            <h2 style="color: #444; margin-top: 30px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">Accounts Summary</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
               <tr style="background-color: #f8f9fa;">
-                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Date</th>
-                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Type</th>
-                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Amount</th>
-                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Notes</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 14px;">ID</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 14px;">Account Name</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 14px;">Type</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 14px;">Init Balance</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 14px;">Curr Balance</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 14px;">Created</th>
+              </tr>
+              ${accountRows}
+              <tr style="background-color: #e2e8f0;">
+                <td colspan="4" style="padding: 12px; text-align: right; font-weight: bold;">Total Balance:</td>
+                <td colspan="2" style="padding: 12px; font-weight: bold; color: #0f172a;">$${totalBalance.toFixed(2)}</td>
+              </tr>
+            </table>
+
+            <h2 style="color: #444; margin-top: 40px; border-bottom: 2px solid #ddd; padding-bottom: 5px;">Transactions History</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+              <tr style="background-color: #f8f9fa;">
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">ID</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Date & Time</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Type</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">From Account</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">To Account</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Amount</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Notes</th>
+                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Receipt</th>
               </tr>
               ${rows}
             </table>
@@ -57,10 +100,10 @@ export default function DashboardScreen({ navigation, setToken }: any) {
         </html>
       `;
 
-      const { uri } = await Print.printToFileAsync({ html });
       if (Platform.OS === 'web') {
-        window.open(uri);
+        await Print.printAsync({ html });
       } else {
+        const { uri } = await Print.printToFileAsync({ html });
         await Sharing.shareAsync(uri);
       }
     } catch (e) {
@@ -72,29 +115,50 @@ export default function DashboardScreen({ navigation, setToken }: any) {
   const exportExcel = async () => {
     setExportLoading(true);
     try {
-      const data = await fetchTransactions();
-      const ws = XLSX.utils.json_to_sheet(data.map((t: any) => ({
-        Date: new Date(t.date).toLocaleDateString(),
-        Type: t.type,
-        Amount: t.amount,
-        Notes: t.notes
+      if (!transactions || transactions.length === 0) {
+        Alert.alert('Info', 'No transactions to export.');
+        setExportLoading(false);
+        return;
+      }
+
+      const wsAccounts = XLSX.utils.json_to_sheet(accounts.map((a: any) => ({
+        "ID": a.id,
+        "Account Name": a.name,
+        "Account Type": a.type,
+        "Initial Balance": a.initialBalance || 0,
+        "Current Balance": a.currentBalance,
+        "Created At": a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''
       })));
+
+      const wsTransactions = XLSX.utils.json_to_sheet(transactions.map((t: any) => ({
+        "ID": t.id,
+        "Date": new Date(t.date).toLocaleDateString(),
+        "Time": new Date(t.date).toLocaleTimeString(),
+        "Type": t.type,
+        "From Account": accounts.find((a: any) => a.id === t.accountId)?.name || 'Unknown',
+        "To Account": t.toAccountId ? (accounts.find((a: any) => a.id === t.toAccountId)?.name || 'Unknown') : '-',
+        "Amount": t.amount,
+        "Notes": t.notes || '',
+        "Has Receipt": t.receiptImage ? 'Yes' : 'No'
+      })));
+      
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Transactions");
+      XLSX.utils.book_append_sheet(wb, wsAccounts, "Accounts Summary");
+      XLSX.utils.book_append_sheet(wb, wsTransactions, "Transactions");
       
       const wbout = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-      const uri = FileSystem.cacheDirectory + 'transactions.xlsx';
+      const uri = FileSystem.cacheDirectory + 'cashflow_report.xlsx';
       
       if (Platform.OS === 'web') {
         const link = document.createElement('a');
         link.href = 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,' + wbout;
-        link.download = 'transactions.xlsx';
+        link.download = 'cashflow_report.xlsx';
         link.click();
       } else {
         await FileSystem.writeAsStringAsync(uri, wbout, { encoding: FileSystem.EncodingType.Base64 });
         await Sharing.shareAsync(uri, {
           mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          dialogTitle: 'Export Transactions'
+          dialogTitle: 'Export Cashflow Report'
         });
       }
     } catch (e) {
