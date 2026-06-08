@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-
-const API_URL = 'http://localhost:5000/api';
+import { getTokenAsync, deleteTokenAsync } from '../utils/AuthHelper';
+import { API_URL } from '../utils/config';
 
 export default function DashboardScreen({ navigation, setToken }: any) {
   const [balance, setBalance] = useState(0);
@@ -13,7 +12,7 @@ export default function DashboardScreen({ navigation, setToken }: any) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getTokenAsync();
       const res = await axios.get(`${API_URL}/accounts`, {
         headers: { Authorization: `Bearer ${token}` }
       });

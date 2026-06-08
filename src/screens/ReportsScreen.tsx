@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import { getTokenAsync } from '../utils/AuthHelper';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import XLSX from 'xlsx';
-
-const API_URL = 'http://localhost:5000/api';
+import { API_URL } from '../utils/config';
 
 export default function ReportsScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
@@ -16,7 +15,7 @@ export default function ReportsScreen({ navigation }: any) {
   const exportPDF = async () => {
     setLoading(true);
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getTokenAsync();
       const res = await axios.get(`${API_URL}/transactions`, { headers: { Authorization: `Bearer ${token}` } });
       
       let html = `
@@ -67,7 +66,7 @@ export default function ReportsScreen({ navigation }: any) {
   const exportExcel = async () => {
     setLoading(true);
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getTokenAsync();
       const res = await axios.get(`${API_URL}/transactions`, { headers: { Authorization: `Bearer ${token}` } });
       
       const data = res.data.map((tx: any) => ({

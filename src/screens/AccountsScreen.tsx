@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-
-const API_URL = 'http://localhost:5000/api';
+import { getTokenAsync } from '../utils/AuthHelper';
+import { API_URL } from '../utils/config';
 
 export default function AccountsScreen({ navigation }: any) {
   const [accounts, setAccounts] = useState([]);
@@ -15,7 +14,7 @@ export default function AccountsScreen({ navigation }: any) {
 
   const fetchAccounts = async () => {
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getTokenAsync();
       const res = await axios.get(`${API_URL}/accounts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -31,7 +30,7 @@ export default function AccountsScreen({ navigation }: any) {
 
   const handleAddAccount = async () => {
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getTokenAsync();
       await axios.post(`${API_URL}/accounts`, {
         name, type, initialBalance: parseFloat(initialBalance) || 0
       }, {

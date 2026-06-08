@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-
-const API_URL = 'http://localhost:5000/api';
+import { getTokenAsync } from '../utils/AuthHelper';
+import { API_URL } from '../utils/config';
 
 export default function TransactionsScreen({ navigation }: any) {
   const [transactions, setTransactions] = useState([]);
@@ -19,7 +18,7 @@ export default function TransactionsScreen({ navigation }: any) {
 
   const fetchData = async () => {
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getTokenAsync();
       const [txRes, accRes] = await Promise.all([
         axios.get(`${API_URL}/transactions`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API_URL}/accounts`, { headers: { Authorization: `Bearer ${token}` } })

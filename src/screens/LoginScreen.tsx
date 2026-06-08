@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as SecureStore from 'expo-secure-store';
+import { setTokenAsync } from '../utils/AuthHelper';
+import { API_URL } from '../utils/config';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:5000/api'; // Use 10.0.2.2 for Android emulator
 
 export default function LoginScreen({ setToken }: { setToken: (token: string) => void }) {
   const [email, setEmail] = useState('');
@@ -23,7 +22,7 @@ export default function LoginScreen({ setToken }: { setToken: (token: string) =>
       } else {
         const res = await axios.post(`${API_URL}/auth/login`, { email, password });
         const token = res.data.token;
-        await SecureStore.setItemAsync('userToken', token);
+        await setTokenAsync(token);
         setToken(token);
       }
     } catch (error) {
