@@ -18,6 +18,7 @@ export default function TransactionsScreen() {
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('Deposit');
   const [accountId, setAccountId] = useState<number | undefined>(undefined);
+  const [toAccountId, setToAccountId] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -26,8 +27,9 @@ export default function TransactionsScreen() {
   }, [filterAccountId, filterType]);
 
   useEffect(() => {
-    if (accounts.length > 0 && accountId === undefined) {
-      setAccountId(accounts[0].id);
+    if (accounts.length > 0) {
+      if (accountId === undefined) setAccountId(accounts[0].id);
+      if (toAccountId === undefined && accounts.length > 1) setToAccountId(accounts[1].id);
     }
   }, [accounts]);
 
@@ -36,12 +38,18 @@ export default function TransactionsScreen() {
       Alert.alert('Error', 'Amount and Account are required');
       return;
     }
+    if (type === 'Transfer' && (!toAccountId || accountId === toAccountId)) {
+      Alert.alert('Error', 'Please select a valid destination account for the transfer');
+      return;
+    }
+
     try {
       const token = await getTokenAsync();
       await axios.post(`${API_URL}/transactions`, {
         amount: parseFloat(amount),
         type,
         accountId,
+        toAccountId: type === 'Transfer' ? toAccountId : null,
         notes
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -84,7 +92,7 @@ export default function TransactionsScreen() {
           ))}
         </ScrollView>
         <View style={styles.typeFilters}>
-          {['', 'Deposit', 'Withdraw'].map((t, idx) => (
+          {['', 'Deposit', 'Withdraw', 'Transfer'].map((t, idx) => (
             <TouchableOpacity 
               key={idx} 
               style={[styles.typeFilterBtn, filterType === t && styles.typeFilterBtnActive]}
@@ -104,19 +112,39 @@ export default function TransactionsScreen() {
         onRefresh={() => fetchTransactions(filterAccountId, filterType)}
         renderItem={({ item }) => {
           const accName = accounts.find(a => a.id === item.accountId)?.name || 'Unknown Account';
-          const isDeposit = item.type === 'Deposit';
+          const toAccName = accounts.find(a => a.id === item.toAccountId)?.name;
+          
+          let iconName: any = "arrow-up-outline";
+          let iconColor = "#f87171";
+          let iconBg = "rgba(248,113,113,0.1)";
+          let amountPrefix = "-";
+
+          if (item.type === 'Deposit') {
+            iconName = "arrow-down-outline";
+            iconColor = "#4ade80";
+            iconBg = "rgba(74,222,128,0.1)";
+            amountPrefix = "+";
+          } else if (item.type === 'Transfer') {
+            iconName = "swap-horizontal-outline";
+            iconColor = "#a78bfa";
+            iconBg = "rgba(167,139,250,0.1)";
+            amountPrefix = "";
+          }
+
           return (
             <LinearGradient colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)']} style={styles.card}>
-              <View style={[styles.iconWrapper, { backgroundColor: isDeposit ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)' }]}>
-                <Ionicons name={isDeposit ? "arrow-down-outline" : "arrow-up-outline"} size={20} color={isDeposit ? '#4ade80' : '#f87171'} />
+              <View style={[styles.iconWrapper, { backgroundColor: iconBg }]}>
+                <Ionicons name={iconName} size={20} color={iconColor} />
               </View>
               <View style={styles.cardMiddle}>
                 <Text style={styles.cardType}>{item.type}</Text>
-                <Text style={styles.cardSub}>{accName} • {new Date(item.date).toLocaleDateString()}</Text>
+                <Text style={styles.cardSub}>
+                  {item.type === 'Transfer' ? `${accName} → ${toAccName}` : accName} • {new Date(item.date).toLocaleDateString()}
+                </Text>
               </View>
               <View style={styles.cardRight}>
-                <Text style={[styles.cardAmount, { color: isDeposit ? '#4ade80' : '#f8fafc' }]}>
-                  {isDeposit ? '+' : '-'}${item.amount.toFixed(2)}
+                <Text style={[styles.cardAmount, { color: iconColor }]}>
+                  {amountPrefix}${item.amount.toFixed(2)}
                 </Text>
                 {item.notes ? <Text style={styles.cardSubRight}>{item.notes}</Text> : null}
               </View>
@@ -132,7 +160,7 @@ export default function TransactionsScreen() {
             <Text style={styles.modalTitle}>New Transaction</Text>
             
             <View style={styles.typeSelector}>
-              {['Deposit', 'Withdraw'].map(t => (
+              {['Deposit', 'Withdraw', 'Transfer'].map(t => (
                 <TouchableOpacity 
                   key={t} 
                   style={[styles.typeSelectBtn, type === t && styles.typeSelectBtnActive]}
@@ -143,7 +171,8 @@ export default function TransactionsScreen() {
               ))}
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+            <Text style={styles.label}>{type === 'Transfer' ? 'From Account:' : 'Select Account:'}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50 }}>
               {accounts.map(acc => (
                 <TouchableOpacity 
                   key={acc.id} 
@@ -153,6 +182,23 @@ export default function TransactionsScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+
+            {type === 'Transfer' && (
+              <>
+                <Text style={styles.label}>To Account:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50 }}>
+                  {accounts.map(acc => (
+                    <TouchableOpacity 
+                      key={acc.id} 
+                      style={[styles.accBtn, toAccountId === acc.id && styles.accBtnActive, accountId === acc.id && { opacity: 0.5 }]}
+                      onPress={() => setToAccountId(acc.id)}
+                      disabled={accountId === acc.id}>
+                      <Text style={[styles.accText, toAccountId === acc.id && styles.accTextActive]}>{acc.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
 
             <View style={styles.inputContainer}>
               <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
@@ -192,7 +238,7 @@ const styles = StyleSheet.create({
   filterText: { color: '#cbd5e1', fontSize: 14, fontWeight: '600' },
   filterTextActive: { color: '#0f172a', fontWeight: 'bold' },
   typeFilters: { flexDirection: 'row', justifyContent: 'space-between' },
-  typeFilterBtn: { flex: 1, paddingVertical: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, marginHorizontal: 5, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  typeFilterBtn: { flex: 1, paddingVertical: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, marginHorizontal: 3, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
   typeFilterBtnActive: { backgroundColor: '#8b5cf6', borderColor: '#8b5cf6' },
   list: { padding: 20, paddingBottom: 120 },
   card: {
@@ -211,10 +257,11 @@ const styles = StyleSheet.create({
   modalContent: { padding: 30, backgroundColor: '#1e293b', borderTopLeftRadius: 35, borderTopRightRadius: 35 },
   modalHandle: { width: 40, height: 5, backgroundColor: '#475569', borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
   modalTitle: { color: '#f8fafc', fontSize: 24, fontWeight: '800', marginBottom: 25, textAlign: 'center' },
+  label: { color: '#cbd5e1', fontWeight: '600', marginBottom: 10, marginLeft: 5 },
   typeSelector: { flexDirection: 'row', marginBottom: 20 },
-  typeSelectBtn: { flex: 1, padding: 15, alignItems: 'center', backgroundColor: 'rgba(15,23,42,0.6)', marginHorizontal: 5, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  typeSelectBtn: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: 'rgba(15,23,42,0.6)', marginHorizontal: 4, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   typeSelectBtnActive: { backgroundColor: '#8b5cf6', borderColor: '#8b5cf6' },
-  typeSelectText: { color: '#94a3b8', fontWeight: '600' },
+  typeSelectText: { color: '#94a3b8', fontWeight: '600', fontSize: 13 },
   typeSelectTextActive: { color: '#fff', fontWeight: 'bold' },
   accBtn: { paddingHorizontal: 20, paddingVertical: 12, backgroundColor: 'rgba(15,23,42,0.6)', borderRadius: 16, marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   accBtnActive: { backgroundColor: '#38bdf8', borderColor: '#38bdf8' },
