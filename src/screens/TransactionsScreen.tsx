@@ -5,8 +5,9 @@ import axios from 'axios';
 import { getTokenAsync } from '../utils/AuthHelper';
 import { API_URL } from '../utils/config';
 import { useStore } from '../store/useStore';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function TransactionsScreen({ navigation }: any) {
+export default function TransactionsScreen() {
   const { transactions, accounts, fetchTransactions, fetchAccounts, loading } = useStore();
   
   const [modalVisible, setModalVisible] = useState(false);
@@ -49,7 +50,7 @@ export default function TransactionsScreen({ navigation }: any) {
       setAmount('');
       setNotes('');
       fetchTransactions(filterAccountId, filterType);
-      fetchAccounts(); // refresh balance
+      fetchAccounts(); 
     } catch (e) {
       Alert.alert('Error', 'Failed to add transaction');
     }
@@ -57,12 +58,13 @@ export default function TransactionsScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={styles.background} />
+      <LinearGradient colors={['#0f172a', '#1e293b', '#334155']} style={styles.background} />
       
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.headerBtn}>Back</Text></TouchableOpacity>
         <Text style={styles.headerTitle}>Transactions</Text>
-        <TouchableOpacity onPress={() => setModalVisible(true)}><Text style={styles.headerBtn}>Add</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addBtn}>
+          <Ionicons name="add" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -70,24 +72,24 @@ export default function TransactionsScreen({ navigation }: any) {
           <TouchableOpacity 
             style={[styles.filterBtn, filterAccountId === undefined && styles.filterBtnActive]}
             onPress={() => setFilterAccountId(undefined)}>
-            <Text style={styles.filterText}>All Accounts</Text>
+            <Text style={[styles.filterText, filterAccountId === undefined && styles.filterTextActive]}>All Accounts</Text>
           </TouchableOpacity>
           {accounts.map(acc => (
             <TouchableOpacity 
               key={acc.id} 
               style={[styles.filterBtn, filterAccountId === acc.id && styles.filterBtnActive]}
               onPress={() => setFilterAccountId(acc.id)}>
-              <Text style={styles.filterText}>{acc.name}</Text>
+              <Text style={[styles.filterText, filterAccountId === acc.id && styles.filterTextActive]}>{acc.name}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
         <View style={styles.typeFilters}>
-          {['', 'Deposit', 'Withdraw'].map(t => (
+          {['', 'Deposit', 'Withdraw'].map((t, idx) => (
             <TouchableOpacity 
-              key={t} 
+              key={idx} 
               style={[styles.typeFilterBtn, filterType === t && styles.typeFilterBtnActive]}
               onPress={() => setFilterType(t)}>
-              <Text style={styles.filterText}>{t || 'All Types'}</Text>
+              <Text style={[styles.filterText, filterType === t && styles.filterTextActive]}>{t || 'All Types'}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -98,22 +100,27 @@ export default function TransactionsScreen({ navigation }: any) {
         keyExtractor={(item: any) => item.id.toString()}
         contentContainerStyle={styles.list}
         refreshing={loading}
+        showsVerticalScrollIndicator={false}
         onRefresh={() => fetchTransactions(filterAccountId, filterType)}
         renderItem={({ item }) => {
           const accName = accounts.find(a => a.id === item.accountId)?.name || 'Unknown Account';
+          const isDeposit = item.type === 'Deposit';
           return (
-            <View style={styles.card}>
-              <View>
-                <Text style={[styles.cardType, { color: item.type === 'Deposit' ? '#4ade80' : '#f87171' }]}>{item.type}</Text>
+            <LinearGradient colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.03)']} style={styles.card}>
+              <View style={[styles.iconWrapper, { backgroundColor: isDeposit ? 'rgba(74,222,128,0.1)' : 'rgba(248,113,113,0.1)' }]}>
+                <Ionicons name={isDeposit ? "arrow-down-outline" : "arrow-up-outline"} size={20} color={isDeposit ? '#4ade80' : '#f87171'} />
+              </View>
+              <View style={styles.cardMiddle}>
+                <Text style={styles.cardType}>{item.type}</Text>
                 <Text style={styles.cardSub}>{accName} • {new Date(item.date).toLocaleDateString()}</Text>
               </View>
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={styles.cardAmount}>
-                  {item.type === 'Deposit' ? '+' : '-'}${item.amount.toFixed(2)}
+              <View style={styles.cardRight}>
+                <Text style={[styles.cardAmount, { color: isDeposit ? '#4ade80' : '#f8fafc' }]}>
+                  {isDeposit ? '+' : '-'}${item.amount.toFixed(2)}
                 </Text>
-                {item.notes ? <Text style={styles.cardSub}>{item.notes}</Text> : null}
+                {item.notes ? <Text style={styles.cardSubRight}>{item.notes}</Text> : null}
               </View>
-            </View>
+            </LinearGradient>
           );
         }}
       />
@@ -121,16 +128,17 @@ export default function TransactionsScreen({ navigation }: any) {
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
             <Text style={styles.modalTitle}>New Transaction</Text>
             
             <View style={styles.typeSelector}>
               {['Deposit', 'Withdraw'].map(t => (
                 <TouchableOpacity 
                   key={t} 
-                  style={[styles.typeBtn, type === t && styles.typeBtnActive]}
+                  style={[styles.typeSelectBtn, type === t && styles.typeSelectBtnActive]}
                   onPress={() => setType(t)}
                 >
-                  <Text style={styles.btnText}>{t}</Text>
+                  <Text style={[styles.typeSelectText, type === t && styles.typeSelectTextActive]}>{t}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -139,24 +147,31 @@ export default function TransactionsScreen({ navigation }: any) {
               {accounts.map(acc => (
                 <TouchableOpacity 
                   key={acc.id} 
-                  style={[styles.typeBtn, accountId === acc.id && styles.typeBtnActive]}
+                  style={[styles.accBtn, accountId === acc.id && styles.accBtnActive]}
                   onPress={() => setAccountId(acc.id)}>
-                  <Text style={styles.btnText}>{acc.name}</Text>
+                  <Text style={[styles.accText, accountId === acc.id && styles.accTextActive]}>{acc.name}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
 
-            <TextInput style={styles.input} placeholder="Amount" placeholderTextColor="#aaa" keyboardType="numeric" value={amount} onChangeText={setAmount} />
-            <TextInput style={styles.input} placeholder="Notes" placeholderTextColor="#aaa" value={notes} onChangeText={setNotes} />
-            
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.btn, { backgroundColor: '#333' }]} onPress={() => setModalVisible(false)}>
-                <Text style={styles.btnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.btn, { backgroundColor: '#e94560' }]} onPress={handleAddTx}>
-                <Text style={styles.btnText}>Save</Text>
-              </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <TextInput style={styles.input} placeholder="Amount" placeholderTextColor="#64748b" keyboardType="numeric" value={amount} onChangeText={setAmount} />
             </View>
+            <View style={styles.inputContainer}>
+              <Ionicons name="document-text-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <TextInput style={styles.input} placeholder="Notes (optional)" placeholderTextColor="#64748b" value={notes} onChangeText={setNotes} />
+            </View>
+            
+            <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
+              <LinearGradient colors={['#8b5cf6', '#6d28d9']} style={styles.saveBtnGradient}>
+                <Text style={styles.btnText}>Add Transaction</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -167,34 +182,50 @@ export default function TransactionsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   background: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 60 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
-  headerBtn: { color: '#4facfe', fontSize: 16 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 25, paddingTop: 60 },
+  headerTitle: { fontSize: 28, fontWeight: '800', color: '#f8fafc' },
+  addBtn: { width: 45, height: 45, borderRadius: 22.5, backgroundColor: '#8b5cf6', justifyContent: 'center', alignItems: 'center', shadowColor: '#8b5cf6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8 },
   filtersContainer: { paddingHorizontal: 20, marginBottom: 10 },
-  filterScroll: { marginBottom: 10 },
-  filterBtn: { paddingHorizontal: 15, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20, marginRight: 10 },
-  filterBtnActive: { backgroundColor: '#e94560' },
+  filterScroll: { marginBottom: 15 },
+  filterBtn: { paddingHorizontal: 20, paddingVertical: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  filterBtnActive: { backgroundColor: '#38bdf8', borderColor: '#38bdf8' },
+  filterText: { color: '#cbd5e1', fontSize: 14, fontWeight: '600' },
+  filterTextActive: { color: '#0f172a', fontWeight: 'bold' },
   typeFilters: { flexDirection: 'row', justifyContent: 'space-between' },
-  typeFilterBtn: { flex: 1, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20, marginHorizontal: 5, alignItems: 'center' },
-  typeFilterBtnActive: { backgroundColor: '#4facfe' },
-  filterText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-  list: { padding: 20, paddingTop: 0 },
+  typeFilterBtn: { flex: 1, paddingVertical: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 20, marginHorizontal: 5, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  typeFilterBtnActive: { backgroundColor: '#8b5cf6', borderColor: '#8b5cf6' },
+  list: { padding: 20, paddingBottom: 120 },
   card: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    padding: 20, marginBottom: 15, borderRadius: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.2)'
+    flexDirection: 'row', alignItems: 'center',
+    padding: 18, marginBottom: 12, borderRadius: 20,
+    borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.05)'
   },
-  cardType: { fontSize: 16, fontWeight: 'bold' },
-  cardSub: { color: '#aaa', fontSize: 12, marginTop: 5 },
-  cardAmount: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.8)' },
-  modalContent: { padding: 20, backgroundColor: '#1a1a2e', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingBottom: 40 },
-  modalTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
+  iconWrapper: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  cardMiddle: { flex: 1 },
+  cardType: { color: '#f8fafc', fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  cardSub: { color: '#94a3b8', fontSize: 12 },
+  cardRight: { alignItems: 'flex-end' },
+  cardAmount: { fontSize: 18, fontWeight: '900' },
+  cardSubRight: { color: '#64748b', fontSize: 12, marginTop: 4 },
+  modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)' },
+  modalContent: { padding: 30, backgroundColor: '#1e293b', borderTopLeftRadius: 35, borderTopRightRadius: 35 },
+  modalHandle: { width: 40, height: 5, backgroundColor: '#475569', borderRadius: 3, alignSelf: 'center', marginBottom: 20 },
+  modalTitle: { color: '#f8fafc', fontSize: 24, fontWeight: '800', marginBottom: 25, textAlign: 'center' },
   typeSelector: { flexDirection: 'row', marginBottom: 20 },
-  typeBtn: { padding: 15, alignItems: 'center', backgroundColor: '#333', marginHorizontal: 5, borderRadius: 10, minWidth: 100 },
-  typeBtnActive: { backgroundColor: '#4facfe' },
-  input: { backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15 },
-  modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  btn: { flex: 1, padding: 15, borderRadius: 10, alignItems: 'center', marginHorizontal: 5 },
-  btnText: { color: '#fff', fontWeight: 'bold' }
+  typeSelectBtn: { flex: 1, padding: 15, alignItems: 'center', backgroundColor: 'rgba(15,23,42,0.6)', marginHorizontal: 5, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  typeSelectBtnActive: { backgroundColor: '#8b5cf6', borderColor: '#8b5cf6' },
+  typeSelectText: { color: '#94a3b8', fontWeight: '600' },
+  typeSelectTextActive: { color: '#fff', fontWeight: 'bold' },
+  accBtn: { paddingHorizontal: 20, paddingVertical: 12, backgroundColor: 'rgba(15,23,42,0.6)', borderRadius: 16, marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  accBtnActive: { backgroundColor: '#38bdf8', borderColor: '#38bdf8' },
+  accText: { color: '#94a3b8', fontWeight: '600' },
+  accTextActive: { color: '#0f172a', fontWeight: 'bold' },
+  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(15,23,42,0.6)', borderRadius: 16, marginBottom: 15, paddingHorizontal: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  inputIcon: { marginRight: 10 },
+  input: { flex: 1, color: '#f8fafc', paddingVertical: 18, fontSize: 16 },
+  saveBtn: { marginTop: 10, borderRadius: 16, overflow: 'hidden' },
+  saveBtnGradient: { padding: 18, alignItems: 'center' },
+  btnText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
+  cancelBtn: { padding: 18, alignItems: 'center', marginTop: 5 },
+  cancelText: { color: '#94a3b8', fontSize: 16, fontWeight: '600' }
 });
