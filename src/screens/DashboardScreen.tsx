@@ -183,8 +183,8 @@ export default function DashboardScreen({ navigation, setToken }: any) {
       
       <View style={styles.header}>
         <View>
-          <Text style={styles.greetingSub}>Good morning,</Text>
-          <Text style={styles.greeting}>User 👋</Text>
+          <Text style={styles.greetingSub}>صباح الخير،</Text>
+          <Text style={styles.greeting}>مستخدم 👋</Text>
         </View>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
           <Ionicons name="log-out-outline" size={24} color="#f87171" />
@@ -198,46 +198,46 @@ export default function DashboardScreen({ navigation, setToken }: any) {
       >
         <LinearGradient colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']} style={styles.balanceCard}>
           <View style={styles.glassHighlight} />
-          <Text style={styles.balanceLabel}>Total Balance</Text>
+          <Text style={styles.balanceLabel}>إجمالي الرصيد</Text>
           <Text style={styles.balanceAmount}>${totalBalance.toFixed(2)}</Text>
         </LinearGradient>
 
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>إجراءات سريعة</Text>
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Accounts')}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('الحسابات')}>
             <LinearGradient colors={['#38bdf8', '#0284c7']} style={styles.actionBtnGradient}>
               <Ionicons name="wallet-outline" size={28} color="#fff" />
-              <Text style={styles.actionText}>Accounts</Text>
+              <Text style={styles.actionText}>الحسابات</Text>
             </LinearGradient>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Transactions')}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('المعاملات')}>
             <LinearGradient colors={['#a78bfa', '#7c3aed']} style={styles.actionBtnGradient}>
               <Ionicons name="swap-horizontal-outline" size={28} color="#fff" />
-              <Text style={styles.actionText}>Transfer</Text>
+              <Text style={styles.actionText}>المعاملات</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
-        <Text style={styles.sectionTitle}>Reports & Exports</Text>
+        <Text style={styles.sectionTitle}>التقارير والتصدير</Text>
         
         {exportLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#38bdf8" />
-            <Text style={styles.loadingText}>Generating Report...</Text>
+            <Text style={styles.loadingText}>جاري إنشاء التقرير...</Text>
           </View>
         ) : (
           <View style={styles.actionsContainer}>
             <TouchableOpacity style={styles.actionBtn} onPress={exportPDF}>
               <LinearGradient colors={['rgba(244,63,94,0.1)', 'rgba(225,29,72,0.05)']} style={[styles.actionBtnGradient, { borderColor: 'rgba(244,63,94,0.3)', borderWidth: 1 }]}>
                 <Ionicons name="document-text" size={28} color="#fb7185" />
-                <Text style={[styles.actionText, { color: '#fb7185' }]}>Export PDF</Text>
+                <Text style={[styles.actionText, { color: '#fb7185' }]}>تصدير PDF</Text>
               </LinearGradient>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.actionBtn} onPress={exportExcel}>
               <LinearGradient colors={['rgba(16,185,129,0.1)', 'rgba(5,150,105,0.05)']} style={[styles.actionBtnGradient, { borderColor: 'rgba(16,185,129,0.3)', borderWidth: 1 }]}>
                 <Ionicons name="grid" size={28} color="#34d399" />
-                <Text style={[styles.actionText, { color: '#34d399' }]}>Export Excel</Text>
+                <Text style={[styles.actionText, { color: '#34d399' }]}>تصدير Excel</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

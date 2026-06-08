@@ -20,7 +20,7 @@ export default function AccountsScreen() {
 
   const handleAddAccount = async () => {
     if (!name || !type || !initialBalance) {
-      Alert.alert('Error', 'All fields are required');
+      Alert.alert('خطأ', 'جميع الحقول مطلوبة');
       return;
     }
     try {
@@ -35,7 +35,7 @@ export default function AccountsScreen() {
       setInitialBalance('');
       fetchAccounts();
     } catch (e) {
-      Alert.alert('Error', 'Failed to create account');
+      Alert.alert('خطأ', 'فشل في إنشاء الحساب');
     }
   };
 
@@ -44,7 +44,7 @@ export default function AccountsScreen() {
       <LinearGradient colors={['#0f172a', '#1e293b', '#334155']} style={styles.background} />
       
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Wallets</Text>
+        <Text style={styles.headerTitle}>محافظي</Text>
         <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addBtn}>
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
@@ -76,31 +76,31 @@ export default function AccountsScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-              <Text style={styles.modalTitle}>New Account</Text>
+              <Text style={styles.modalTitle}>حساب جديد</Text>
               
               <View style={styles.inputContainer}>
                 <Ionicons name="pricetag-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-                <TextInput style={styles.input} placeholder="Account Name" placeholderTextColor="#64748b" value={name} onChangeText={setName} />
+                <TextInput style={styles.input} placeholder="اسم الحساب" placeholderTextColor="#64748b" value={name} onChangeText={setName} textAlign="right" />
               </View>
               
               <View style={styles.inputContainer}>
                 <Ionicons name="grid-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-                <TextInput style={styles.input} placeholder="Account Type (e.g. Instapay)" placeholderTextColor="#64748b" value={type} onChangeText={setType} />
+                <TextInput style={styles.input} placeholder="نوع الحساب (مثال: انستاباي)" placeholderTextColor="#64748b" value={type} onChangeText={setType} textAlign="right" />
               </View>
               
               <View style={styles.inputContainer}>
                 <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-                <TextInput style={styles.input} placeholder="Initial Balance" placeholderTextColor="#64748b" keyboardType="numeric" value={initialBalance} onChangeText={setInitialBalance} />
+                <TextInput style={styles.input} placeholder="الرصيد الافتتاحي" placeholderTextColor="#64748b" keyboardType="numeric" value={initialBalance} onChangeText={setInitialBalance} textAlign="right" />
               </View>
               
               <TouchableOpacity style={styles.saveBtn} onPress={handleAddAccount}>
                 <LinearGradient colors={['#38bdf8', '#0284c7']} style={styles.saveBtnGradient}>
-                  <Text style={styles.btnText}>Create Wallet</Text>
+                  <Text style={styles.btnText}>إنشاء محفظة</Text>
                 </LinearGradient>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text style={styles.cancelText}>إلغاء</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>

@@ -17,7 +17,7 @@ export default function LoginScreen({ setToken }: { setToken: (token: string) =>
     try {
       if (isRegister) {
         await axios.post(`${API_URL}/auth/register`, { email, password, phone: '' });
-        Alert.alert("Success", "Registered successfully. Please login.");
+        Alert.alert("نجاح", "تم التسجيل بنجاح. يرجى تسجيل الدخول.");
         setIsRegister(false);
       } else {
         const res = await axios.post(`${API_URL}/auth/login`, { email, password });
@@ -26,7 +26,7 @@ export default function LoginScreen({ setToken }: { setToken: (token: string) =>
         setToken(token);
       }
     } catch (error) {
-      Alert.alert("Error", "Authentication failed");
+      Alert.alert("خطأ", "فشل المصادقة");
     } finally {
       setLoading(false);
     }
@@ -37,33 +37,35 @@ export default function LoginScreen({ setToken }: { setToken: (token: string) =>
       <LinearGradient colors={['#1a1a2e', '#16213e', '#0f3460']} style={styles.background} />
       
       <View style={styles.glassCard}>
-        <Text style={styles.title}>Cashflow</Text>
-        <Text style={styles.subtitle}>{isRegister ? 'Create an Account' : 'Welcome Back'}</Text>
+        <Text style={styles.title}>تدفق الأموال</Text>
+        <Text style={styles.subtitle}>{isRegister ? 'إنشاء حساب جديد' : 'مرحباً بعودتك'}</Text>
         
         <TextInput 
           style={styles.input} 
-          placeholder="Email" 
+          placeholder="البريد الإلكتروني" 
           placeholderTextColor="#a0a0a0" 
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
+          textAlign="right"
         />
         <TextInput 
           style={styles.input} 
-          placeholder="Password" 
+          placeholder="كلمة المرور" 
           placeholderTextColor="#a0a0a0" 
           value={password}
           onChangeText={setPassword}
           secureTextEntry 
+          textAlign="right"
         />
         
         <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{isRegister ? 'Register' : 'Sign In'}</Text>}
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{isRegister ? 'تسجيل' : 'تسجيل الدخول'}</Text>}
         </TouchableOpacity>
         
         <TouchableOpacity onPress={() => setIsRegister(!isRegister)}>
           <Text style={styles.switchText}>
-            {isRegister ? 'Already have an account? Sign In' : "Don't have an account? Register"}
+            {isRegister ? 'لديك حساب بالفعل؟ تسجيل الدخول' : "ليس لديك حساب؟ إنشاء حساب"}
           </Text>
         </TouchableOpacity>
       </View>

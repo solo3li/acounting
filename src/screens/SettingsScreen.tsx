@@ -33,10 +33,10 @@ export default function SettingsScreen({ setToken }: any) {
       await axios.post(`${API_URL}/settings/telegram`, { token: telegramToken }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      Alert.alert('Success', 'Telegram Bot Token saved successfully!');
+      Alert.alert('نجاح', 'تم حفظ توكن بوت تيليجرام بنجاح!');
     } catch (e: any) {
-      const errorMsg = e.response?.data?.message || 'Failed to save settings.';
-      Alert.alert('Error', errorMsg);
+      const errorMsg = e.response?.data?.message || 'فشل في حفظ الإعدادات.';
+      Alert.alert('خطأ', errorMsg);
     }
     setLoading(false);
   };
@@ -51,39 +51,40 @@ export default function SettingsScreen({ setToken }: any) {
       <LinearGradient colors={['#0f172a', '#1e293b', '#334155']} style={styles.background} />
       
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={styles.headerTitle}>الإعدادات</Text>
       </View>
 
       <View style={styles.content}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>
-            <Ionicons name="logo-closed-captioning" size={20} /> Telegram Bot Integration
+            <Ionicons name="logo-closed-captioning" size={20} /> ربط بوت تيليجرام
           </Text>
           <Text style={styles.cardDesc}>
-            Connect your own Telegram Bot to talk to your AI financial assistant! Create a bot using @BotFather on Telegram and paste the token here.
+            قم بربط بوت تيليجرام الخاص بك للتحدث مع المساعد المالي الذكي! قم بإنشاء بوت باستخدام @BotFather على تيليجرام والصق التوكن هنا.
           </Text>
           
           <View style={styles.inputContainer}>
             <Ionicons name="key-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Enter Telegram Bot Token..."
+              placeholder="أدخل توكن بوت تيليجرام..."
               placeholderTextColor="#64748b"
               value={telegramToken}
               onChangeText={setTelegramToken}
+              textAlign="right"
             />
           </View>
 
           <TouchableOpacity style={styles.saveBtn} onPress={saveSettings} disabled={loading}>
             <LinearGradient colors={['#38bdf8', '#0284c7']} style={styles.saveBtnGradient}>
-              <Text style={styles.btnText}>{loading ? 'Saving...' : 'Save Bot Token'}</Text>
+              <Text style={styles.btnText}>{loading ? 'جاري الحفظ...' : 'حفظ التوكن'}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={24} color="#f87171" style={{ marginRight: 10 }} />
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>تسجيل الخروج</Text>
         </TouchableOpacity>
       </View>
     </View>

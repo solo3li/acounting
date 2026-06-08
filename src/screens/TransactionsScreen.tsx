@@ -102,7 +102,7 @@ export default function TransactionsScreen({ navigation }: any) {
       fetchTransactions(filterAccountId, filterType, searchQuery);
       fetchAccounts(); 
     } catch (e) {
-      Alert.alert('Error', 'Failed to add transaction');
+      Alert.alert('خطأ', 'فشل في إضافة المعاملة');
     }
   };
 
@@ -111,7 +111,7 @@ export default function TransactionsScreen({ navigation }: any) {
       <LinearGradient colors={['#0f172a', '#1e293b', '#334155']} style={styles.background} />
       
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Transactions</Text>
+        <Text style={styles.headerTitle}>المعاملات</Text>
         <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addBtn}>
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
@@ -122,10 +122,11 @@ export default function TransactionsScreen({ navigation }: any) {
           <Ionicons name="search" size={20} color="#94a3b8" />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by Web Management ID..."
+            placeholder="البحث بواسطة Web Management ID..."
             placeholderTextColor="#94a3b8"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            textAlign="right"
           />
         </View>
       </View>
@@ -135,7 +136,7 @@ export default function TransactionsScreen({ navigation }: any) {
           <TouchableOpacity 
             style={[styles.filterBtn, filterAccountId === undefined && styles.filterBtnActive]}
             onPress={() => setFilterAccountId(undefined)}>
-            <Text style={[styles.filterText, filterAccountId === undefined && styles.filterTextActive]}>All Accounts</Text>
+            <Text style={[styles.filterText, filterAccountId === undefined && styles.filterTextActive]}>كل الحسابات</Text>
           </TouchableOpacity>
           {accounts.map(acc => (
             <TouchableOpacity 
@@ -152,7 +153,9 @@ export default function TransactionsScreen({ navigation }: any) {
               key={idx} 
               style={[styles.typeFilterBtn, filterType === t && styles.typeFilterBtnActive]}
               onPress={() => setFilterType(t)}>
-              <Text style={[styles.filterText, filterType === t && styles.filterTextActive]}>{t || 'All Types'}</Text>
+              <Text style={[styles.filterText, filterType === t && styles.filterTextActive]}>
+                {t === 'Deposit' ? 'إيداع' : t === 'Withdraw' ? 'سحب' : t === 'Transfer' ? 'تحويل' : 'الكل'}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -166,7 +169,7 @@ export default function TransactionsScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         onRefresh={() => fetchTransactions(filterAccountId, filterType)}
         renderItem={({ item }) => {
-          const accName = accounts.find(a => a.id === item.accountId)?.name || 'Unknown Account';
+          const accName = accounts.find(a => a.id === item.accountId)?.name || 'حساب غير معروف';
           const toAccName = accounts.find(a => a.id === item.toAccountId)?.name;
           
           let iconName: any = "arrow-up-outline";
@@ -193,7 +196,9 @@ export default function TransactionsScreen({ navigation }: any) {
                   <Ionicons name={iconName} size={20} color={iconColor} />
                 </View>
                 <View style={styles.cardMiddle}>
-                  <Text style={styles.cardType}>{item.type}</Text>
+                  <Text style={styles.cardType}>
+                    {item.type === 'Deposit' ? 'إيداع' : item.type === 'Withdraw' ? 'سحب' : 'تحويل'}
+                  </Text>
                   <Text style={styles.cardSub}>
                     {item.type === 'Transfer' ? `${accName} → ${toAccName}` : accName} • {new Date(item.date).toLocaleDateString()}
                   </Text>
@@ -218,7 +223,7 @@ export default function TransactionsScreen({ navigation }: any) {
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-              <Text style={styles.modalTitle}>New Transaction</Text>
+              <Text style={styles.modalTitle}>معاملة جديدة</Text>
               
               <View style={styles.typeSelector}>
                 {['Deposit', 'Withdraw', 'Transfer'].map(t => (
@@ -227,12 +232,14 @@ export default function TransactionsScreen({ navigation }: any) {
                     style={[styles.typeSelectBtn, type === t && styles.typeSelectBtnActive]}
                     onPress={() => setType(t)}
                   >
-                    <Text style={[styles.typeSelectText, type === t && styles.typeSelectTextActive]}>{t}</Text>
+                    <Text style={[styles.typeSelectText, type === t && styles.typeSelectTextActive]}>
+                      {t === 'Deposit' ? 'إيداع' : t === 'Withdraw' ? 'سحب' : 'تحويل'}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={styles.label}>{type === 'Transfer' ? 'From Account:' : 'Select Account:'}</Text>
+              <Text style={styles.label}>{type === 'Transfer' ? 'من حساب:' : 'اختر الحساب:'}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50, minHeight: 50 }}>
                 {accounts.map(acc => (
                   <TouchableOpacity 
@@ -246,7 +253,7 @@ export default function TransactionsScreen({ navigation }: any) {
 
               {type === 'Transfer' && (
                 <>
-                  <Text style={styles.label}>To Account:</Text>
+                  <Text style={styles.label}>إلى حساب:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 15, maxHeight: 50, minHeight: 50 }}>
                     {accounts.map(acc => (
                       <TouchableOpacity 
@@ -263,35 +270,36 @@ export default function TransactionsScreen({ navigation }: any) {
 
               <View style={styles.inputContainer}>
                 <Ionicons name="cash-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-                <TextInput style={styles.input} placeholder="Amount" placeholderTextColor="#64748b" keyboardType="numeric" value={amount} onChangeText={setAmount} />
+                <TextInput style={styles.input} placeholder="المبلغ" placeholderTextColor="#64748b" keyboardType="numeric" value={amount} onChangeText={setAmount} textAlign="right" />
               </View>
               <View style={styles.inputContainer}>
                 <Ionicons name="document-text-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
-                <TextInput style={styles.input} placeholder="Notes (optional)" placeholderTextColor="#64748b" value={notes} onChangeText={setNotes} />
+                <TextInput style={styles.input} placeholder="ملاحظات (اختياري)" placeholderTextColor="#64748b" value={notes} onChangeText={setNotes} textAlign="right" />
               </View>
 
               <View style={styles.inputContainer}>
                 <Ionicons name="finger-print-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
                 <TextInput 
                   style={styles.input} 
-                  placeholder={type === 'Withdraw' ? "Web Management ID (Required)" : "Web Management ID (Optional)"}
+                  placeholder={type === 'Withdraw' ? "Web Management ID (مطلوب)" : "Web Management ID (اختياري)"}
                   placeholderTextColor={type === 'Withdraw' ? "#f87171" : "#64748b"} 
                   value={webManagementId} 
                   onChangeText={setWebManagementId} 
+                  textAlign="right"
                 />
               </View>
 
               {type === 'Withdraw' && (
                 <View style={styles.imagePickerContainer}>
-                  <Text style={styles.label}>Receipt / Image (optional):</Text>
+                  <Text style={styles.label}>إيصال / صورة (اختياري):</Text>
                   <View style={styles.imageBtnRow}>
                     <TouchableOpacity style={styles.imgBtn} onPress={pickImage}>
                       <Ionicons name="image-outline" size={24} color="#38bdf8" />
-                      <Text style={styles.imgBtnText}>Gallery</Text>
+                      <Text style={styles.imgBtnText}>المعرض</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.imgBtn} onPress={takePhoto}>
                       <Ionicons name="camera-outline" size={24} color="#38bdf8" />
-                      <Text style={styles.imgBtnText}>Camera</Text>
+                      <Text style={styles.imgBtnText}>الكاميرا</Text>
                     </TouchableOpacity>
                   </View>
                   {receiptImage && (
@@ -307,12 +315,12 @@ export default function TransactionsScreen({ navigation }: any) {
               
               <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
                 <LinearGradient colors={['#8b5cf6', '#6d28d9']} style={styles.saveBtnGradient}>
-                  <Text style={styles.btnText}>Add Transaction</Text>
+                  <Text style={styles.btnText}>إضافة معاملة</Text>
                 </LinearGradient>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
+                <Text style={styles.cancelText}>إلغاء</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>

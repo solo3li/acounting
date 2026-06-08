@@ -8,8 +8,8 @@ export default function TransactionDetailsScreen({ route, navigation }: any) {
   const { transaction } = route.params;
   const { accounts } = useStore();
 
-  const accName = accounts.find((a: any) => a.id === transaction.accountId)?.name || 'Unknown Account';
-  const toAccName = transaction.toAccountId ? (accounts.find((a: any) => a.id === transaction.toAccountId)?.name || 'Unknown Account') : '-';
+  const accName = accounts.find((a: any) => a.id === transaction.accountId)?.name || 'حساب غير معروف';
+  const toAccName = transaction.toAccountId ? (accounts.find((a: any) => a.id === transaction.toAccountId)?.name || 'حساب غير معروف') : '-';
 
   let iconName: any = "arrow-up-outline";
   let iconColor = "#f87171";
@@ -36,7 +36,7 @@ export default function TransactionDetailsScreen({ route, navigation }: any) {
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#f8fafc" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Transaction Details</Text>
+        <Text style={styles.headerTitle}>تفاصيل المعاملة</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -45,7 +45,7 @@ export default function TransactionDetailsScreen({ route, navigation }: any) {
           <View style={[styles.mainIconWrapper, { backgroundColor: iconBg }]}>
             <Ionicons name={iconName} size={40} color={iconColor} />
           </View>
-          <Text style={styles.typeLabel}>{transaction.type}</Text>
+          <Text style={styles.typeLabel}>{transaction.type === 'Deposit' ? 'إيداع' : transaction.type === 'Withdraw' ? 'سحب' : 'تحويل'}</Text>
           <Text style={[styles.amountValue, { color: iconColor }]}>
             {amountPrefix}${transaction.amount.toFixed(2)}
           </Text>
@@ -56,38 +56,38 @@ export default function TransactionDetailsScreen({ route, navigation }: any) {
 
         <View style={styles.card}>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Transaction ID</Text>
+            <Text style={styles.rowLabel}>رقم المعاملة</Text>
             <Text style={styles.rowValue}>#{transaction.id}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>{transaction.type === 'Transfer' ? 'From Account' : 'Account'}</Text>
+            <Text style={styles.rowLabel}>{transaction.type === 'Transfer' ? 'من حساب' : 'الحساب'}</Text>
             <Text style={styles.rowValue}>{accName}</Text>
           </View>
           {transaction.type === 'Transfer' && (
             <>
               <View style={styles.divider} />
               <View style={styles.row}>
-                <Text style={styles.rowLabel}>To Account</Text>
+                <Text style={styles.rowLabel}>إلى حساب</Text>
                 <Text style={styles.rowValue}>{toAccName}</Text>
               </View>
             </>
           )}
           <View style={styles.divider} />
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Web Mgmt ID</Text>
+            <Text style={styles.rowLabel}>معرف الإدارة</Text>
             <Text style={styles.rowValue}>{transaction.webManagementId || '-'}</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>Notes</Text>
-            <Text style={styles.rowValue}>{transaction.notes || 'No notes provided'}</Text>
+            <Text style={styles.rowLabel}>ملاحظات</Text>
+            <Text style={styles.rowValue}>{transaction.notes || 'لا يوجد ملاحظات'}</Text>
           </View>
         </View>
 
         {transaction.receiptImage && (
           <View style={styles.receiptContainer}>
-            <Text style={styles.receiptTitle}>Attached Receipt</Text>
+            <Text style={styles.receiptTitle}>الإيصال المرفق</Text>
             <Image 
               source={{ uri: `data:image/jpeg;base64,${transaction.receiptImage}` }}
               style={styles.receiptImage} 
