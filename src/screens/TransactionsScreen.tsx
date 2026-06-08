@@ -1,48 +1,46 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import { getTokenAsync } from '../utils/AuthHelper';
 import { API_URL } from '../utils/config';
+import { useStore } from '../store/useStore';
 
 export default function TransactionsScreen({ navigation }: any) {
-  const [transactions, setTransactions] = useState([]);
-  const [accounts, setAccounts] = useState([]);
+  const { transactions, accounts, fetchTransactions, fetchAccounts, loading } = useStore();
+  
   const [modalVisible, setModalVisible] = useState(false);
+  const [filterType, setFilterType] = useState<string>('');
+  const [filterAccountId, setFilterAccountId] = useState<number | undefined>(undefined);
   
   // Form State
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('Deposit');
-  const [accountId, setAccountId] = useState('');
+  const [accountId, setAccountId] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState('');
 
-  const fetchData = async () => {
-    try {
-      const token = await getTokenAsync();
-      const [txRes, accRes] = await Promise.all([
-        axios.get(`${API_URL}/transactions`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/accounts`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      setTransactions(txRes.data);
-      setAccounts(accRes.data);
-      if (accRes.data.length > 0) setAccountId(accRes.data[0].id.toString());
-    } catch (e) {
-      console.log(e);
-    }
-  };
+  useEffect(() => {
+    fetchAccounts();
+    fetchTransactions(filterAccountId, filterType);
+  }, [filterAccountId, filterType]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (accounts.length > 0 && accountId === undefined) {
+      setAccountId(accounts[0].id);
+    }
+  }, [accounts]);
 
   const handleAddTx = async () => {
-    if (!amount || !accountId) return;
+    if (!amount || !accountId) {
+      Alert.alert('Error', 'Amount and Account are required');
+      return;
+    }
     try {
-      const token = await SecureStore.getItemAsync('userToken');
+      const token = await getTokenAsync();
       await axios.post(`${API_URL}/transactions`, {
         amount: parseFloat(amount),
         type,
-        accountId: parseInt(accountId),
+        accountId,
         notes
       }, {
         headers: { Authorization: `Bearer ${token}` }
@@ -50,7 +48,8 @@ export default function TransactionsScreen({ navigation }: any) {
       setModalVisible(false);
       setAmount('');
       setNotes('');
-      fetchData();
+      fetchTransactions(filterAccountId, filterType);
+      fetchAccounts(); // refresh balance
     } catch (e) {
       Alert.alert('Error', 'Failed to add transaction');
     }
@@ -66,24 +65,57 @@ export default function TransactionsScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => setModalVisible(true)}><Text style={styles.headerBtn}>Add</Text></TouchableOpacity>
       </View>
 
+      <View style={styles.filtersContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+          <TouchableOpacity 
+            style={[styles.filterBtn, filterAccountId === undefined && styles.filterBtnActive]}
+            onPress={() => setFilterAccountId(undefined)}>
+            <Text style={styles.filterText}>All Accounts</Text>
+          </TouchableOpacity>
+          {accounts.map(acc => (
+            <TouchableOpacity 
+              key={acc.id} 
+              style={[styles.filterBtn, filterAccountId === acc.id && styles.filterBtnActive]}
+              onPress={() => setFilterAccountId(acc.id)}>
+              <Text style={styles.filterText}>{acc.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        <View style={styles.typeFilters}>
+          {['', 'Deposit', 'Withdraw'].map(t => (
+            <TouchableOpacity 
+              key={t} 
+              style={[styles.typeFilterBtn, filterType === t && styles.typeFilterBtnActive]}
+              onPress={() => setFilterType(t)}>
+              <Text style={styles.filterText}>{t || 'All Types'}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
       <FlatList
         data={transactions}
         keyExtractor={(item: any) => item.id.toString()}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View>
-              <Text style={[styles.cardType, { color: item.type === 'Deposit' ? '#4ade80' : '#f87171' }]}>{item.type}</Text>
-              <Text style={styles.cardSub}>{new Date(item.date).toLocaleDateString()}</Text>
+        refreshing={loading}
+        onRefresh={() => fetchTransactions(filterAccountId, filterType)}
+        renderItem={({ item }) => {
+          const accName = accounts.find(a => a.id === item.accountId)?.name || 'Unknown Account';
+          return (
+            <View style={styles.card}>
+              <View>
+                <Text style={[styles.cardType, { color: item.type === 'Deposit' ? '#4ade80' : '#f87171' }]}>{item.type}</Text>
+                <Text style={styles.cardSub}>{accName} • {new Date(item.date).toLocaleDateString()}</Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.cardAmount}>
+                  {item.type === 'Deposit' ? '+' : '-'}${item.amount.toFixed(2)}
+                </Text>
+                {item.notes ? <Text style={styles.cardSub}>{item.notes}</Text> : null}
+              </View>
             </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.cardAmount}>
-                {item.type === 'Deposit' ? '+' : '-'}${item.amount.toFixed(2)}
-              </Text>
-              {item.notes ? <Text style={styles.cardSub}>{item.notes}</Text> : null}
-            </View>
-          </View>
-        )}
+          );
+        }}
       />
 
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
@@ -102,6 +134,17 @@ export default function TransactionsScreen({ navigation }: any) {
                 </TouchableOpacity>
               ))}
             </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+              {accounts.map(acc => (
+                <TouchableOpacity 
+                  key={acc.id} 
+                  style={[styles.typeBtn, accountId === acc.id && styles.typeBtnActive]}
+                  onPress={() => setAccountId(acc.id)}>
+                  <Text style={styles.btnText}>{acc.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
             <TextInput style={styles.input} placeholder="Amount" placeholderTextColor="#aaa" keyboardType="numeric" value={amount} onChangeText={setAmount} />
             <TextInput style={styles.input} placeholder="Notes" placeholderTextColor="#aaa" value={notes} onChangeText={setNotes} />
@@ -127,7 +170,15 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', padding: 20, paddingTop: 60 },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
   headerBtn: { color: '#4facfe', fontSize: 16 },
-  list: { padding: 20 },
+  filtersContainer: { paddingHorizontal: 20, marginBottom: 10 },
+  filterScroll: { marginBottom: 10 },
+  filterBtn: { paddingHorizontal: 15, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20, marginRight: 10 },
+  filterBtnActive: { backgroundColor: '#e94560' },
+  typeFilters: { flexDirection: 'row', justifyContent: 'space-between' },
+  typeFilterBtn: { flex: 1, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20, marginHorizontal: 5, alignItems: 'center' },
+  typeFilterBtnActive: { backgroundColor: '#4facfe' },
+  filterText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
+  list: { padding: 20, paddingTop: 0 },
   card: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     padding: 20, marginBottom: 15, borderRadius: 15,
@@ -140,7 +191,7 @@ const styles = StyleSheet.create({
   modalContent: { padding: 20, backgroundColor: '#1a1a2e', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingBottom: 40 },
   modalTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   typeSelector: { flexDirection: 'row', marginBottom: 20 },
-  typeBtn: { flex: 1, padding: 15, alignItems: 'center', backgroundColor: '#333', marginHorizontal: 5, borderRadius: 10 },
+  typeBtn: { padding: 15, alignItems: 'center', backgroundColor: '#333', marginHorizontal: 5, borderRadius: 10, minWidth: 100 },
   typeBtnActive: { backgroundColor: '#4facfe' },
   input: { backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15 },
   modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },

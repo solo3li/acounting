@@ -4,31 +4,24 @@ import { LinearGradient } from 'expo-linear-gradient';
 import axios from 'axios';
 import { getTokenAsync } from '../utils/AuthHelper';
 import { API_URL } from '../utils/config';
+import { useStore } from '../store/useStore';
 
 export default function AccountsScreen({ navigation }: any) {
-  const [accounts, setAccounts] = useState([]);
+  const { accounts, fetchAccounts, loading } = useStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState('Bank Account');
   const [initialBalance, setInitialBalance] = useState('');
-
-  const fetchAccounts = async () => {
-    try {
-      const token = await getTokenAsync();
-      const res = await axios.get(`${API_URL}/accounts`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAccounts(res.data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
 
   useEffect(() => {
     fetchAccounts();
   }, []);
 
   const handleAddAccount = async () => {
+    if (!name || !type || !initialBalance) {
+      Alert.alert('Error', 'All fields are required');
+      return;
+    }
     try {
       const token = await getTokenAsync();
       await axios.post(`${API_URL}/accounts`, {
@@ -41,7 +34,7 @@ export default function AccountsScreen({ navigation }: any) {
       setInitialBalance('');
       fetchAccounts();
     } catch (e) {
-      Alert.alert('Error', 'Failed to add account');
+      Alert.alert('Error', 'Failed to create account');
     }
   };
 
@@ -59,13 +52,15 @@ export default function AccountsScreen({ navigation }: any) {
         data={accounts}
         keyExtractor={(item: any) => item.id.toString()}
         contentContainerStyle={styles.list}
+        refreshing={loading}
+        onRefresh={fetchAccounts}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View>
               <Text style={styles.cardTitle}>{item.name}</Text>
-              <Text style={styles.cardSub}>{item.type}</Text>
+              <Text style={styles.cardType}>{item.type}</Text>
             </View>
-            <Text style={styles.cardAmount}>${item.currentBalance.toFixed(2)}</Text>
+            <Text style={styles.cardBalance}>${item.currentBalance.toFixed(2)}</Text>
           </View>
         )}
       />
@@ -106,10 +101,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.2)'
   },
   cardTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  cardSub: { color: '#aaa', fontSize: 14, marginTop: 5 },
-  cardAmount: { color: '#4facfe', fontSize: 20, fontWeight: 'bold' },
-  modalContainer: { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.8)' },
-  modalContent: { margin: 20, padding: 20, backgroundColor: '#1a1a2e', borderRadius: 20, borderWidth: 1, borderColor: '#333' },
+  cardType: { color: '#aaa', fontSize: 14, marginTop: 5 },
+  cardBalance: { color: '#4facfe', fontSize: 20, fontWeight: 'bold' },
+  modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.8)' },
+  modalContent: { padding: 20, backgroundColor: '#1a1a2e', borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingBottom: 40 },
   modalTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   input: { backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 15 },
   modalActions: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
