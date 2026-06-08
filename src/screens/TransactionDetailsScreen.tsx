@@ -76,7 +76,11 @@ export default function TransactionDetailsScreen({ route, navigation }: any) {
           <View style={styles.divider} />
           <View style={styles.row}>
             <Text style={styles.rowLabel}>معرف الإدارة</Text>
-            <Text style={styles.rowValue}>{transaction.webManagementId || '-'}</Text>
+            <Text style={styles.rowValue}>
+              {transaction.webManagementId?.trim() ? transaction.webManagementId : 
+               (transaction.WebManagementId?.trim() ? transaction.WebManagementId : 
+               (transaction.referenceNumber?.trim() ? transaction.referenceNumber : '-'))}
+            </Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.row}>
