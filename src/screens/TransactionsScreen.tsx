@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert, ScrollView, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import { getTokenAsync } from '../utils/AuthHelper';
 import { API_URL } from '../utils/config';
@@ -20,6 +21,7 @@ export default function TransactionsScreen() {
   const [accountId, setAccountId] = useState<number | undefined>(undefined);
   const [toAccountId, setToAccountId] = useState<number | undefined>(undefined);
   const [notes, setNotes] = useState('');
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAccounts();
@@ -32,6 +34,36 @@ export default function TransactionsScreen() {
       if (toAccountId === undefined && accounts.length > 1) setToAccountId(accounts[1].id);
     }
   }, [accounts]);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+      base64: true
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setReceiptImage(result.assets[0].base64 || null);
+    }
+  };
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission required", "You need to grant camera access to take a photo");
+      return;
+    }
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      quality: 0.5,
+      base64: true
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setReceiptImage(result.assets[0].base64 || null);
+    }
+  };
 
   const handleAddTx = async () => {
     if (!amount || !accountId) {
@@ -50,13 +82,15 @@ export default function TransactionsScreen() {
         type,
         accountId,
         toAccountId: type === 'Transfer' ? toAccountId : null,
-        notes
+        notes,
+        receiptImage: receiptImage || ''
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setModalVisible(false);
       setAmount('');
       setNotes('');
+      setReceiptImage(null);
       fetchTransactions(filterAccountId, filterType);
       fetchAccounts(); 
     } catch (e) {
@@ -147,6 +181,9 @@ export default function TransactionsScreen() {
                   {amountPrefix}${item.amount.toFixed(2)}
                 </Text>
                 {item.notes ? <Text style={styles.cardSubRight}>{item.notes}</Text> : null}
+                {item.receiptImage ? (
+                  <Ionicons name="image-outline" size={16} color="#38bdf8" style={{ marginTop: 4 }} />
+                ) : null}
               </View>
             </LinearGradient>
           );
@@ -209,6 +246,30 @@ export default function TransactionsScreen() {
                 <Ionicons name="document-text-outline" size={20} color="#94a3b8" style={styles.inputIcon} />
                 <TextInput style={styles.input} placeholder="Notes (optional)" placeholderTextColor="#64748b" value={notes} onChangeText={setNotes} />
               </View>
+
+              {type === 'Withdraw' && (
+                <View style={styles.imagePickerContainer}>
+                  <Text style={styles.label}>Receipt / Image (optional):</Text>
+                  <View style={styles.imageBtnRow}>
+                    <TouchableOpacity style={styles.imgBtn} onPress={pickImage}>
+                      <Ionicons name="image-outline" size={24} color="#38bdf8" />
+                      <Text style={styles.imgBtnText}>Gallery</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.imgBtn} onPress={takePhoto}>
+                      <Ionicons name="camera-outline" size={24} color="#38bdf8" />
+                      <Text style={styles.imgBtnText}>Camera</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {receiptImage && (
+                    <View style={styles.previewContainer}>
+                      <Image source={{ uri: `data:image/jpeg;base64,${receiptImage}` }} style={styles.previewImg} />
+                      <TouchableOpacity style={styles.removeImgBtn} onPress={() => setReceiptImage(null)}>
+                        <Ionicons name="close-circle" size={24} color="#f87171" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
               
               <TouchableOpacity style={styles.saveBtn} onPress={handleAddTx}>
                 <LinearGradient colors={['#8b5cf6', '#6d28d9']} style={styles.saveBtnGradient}>
@@ -276,5 +337,12 @@ const styles = StyleSheet.create({
   saveBtnGradient: { padding: 18, alignItems: 'center' },
   btnText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
   cancelBtn: { padding: 18, alignItems: 'center', marginTop: 5 },
-  cancelText: { color: '#94a3b8', fontSize: 16, fontWeight: '600' }
+  cancelText: { color: '#94a3b8', fontSize: 16, fontWeight: '600' },
+  imagePickerContainer: { marginBottom: 15 },
+  imageBtnRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  imgBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(56,189,248,0.1)', padding: 12, borderRadius: 12, marginHorizontal: 4, borderWidth: 1, borderColor: 'rgba(56,189,248,0.2)' },
+  imgBtnText: { color: '#38bdf8', fontWeight: 'bold', marginLeft: 8 },
+  previewContainer: { marginTop: 15, position: 'relative', alignSelf: 'center' },
+  previewImg: { width: 100, height: 100, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  removeImgBtn: { position: 'absolute', top: -10, right: -10, backgroundColor: '#1e293b', borderRadius: 12 }
 });
