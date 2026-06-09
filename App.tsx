@@ -4,6 +4,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getTokenAsync } from './src/utils/AuthHelper';
 
 import LoginScreen from './src/screens/LoginScreen';
@@ -18,6 +19,7 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabNavigator({ setToken }: { setToken: (token: string | null) => void }) {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -36,8 +38,8 @@ function MainTabNavigator({ setToken }: { setToken: (token: string | null) => vo
           backgroundColor: '#16213e',
           borderTopWidth: 0,
           elevation: 10,
-          height: Platform.OS === 'ios' ? 90 : 70,
-          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+          height: 70 + insets.bottom,
+          paddingBottom: 10 + insets.bottom,
           paddingTop: 10,
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
@@ -71,8 +73,9 @@ export default function App() {
   }, []);
 
   return (
-    <NavigationContainer theme={DarkTheme}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <SafeAreaProvider>
+      <NavigationContainer theme={DarkTheme}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
         {userToken == null ? (
           <Stack.Screen name="Login">
             {props => <LoginScreen {...props} setToken={setUserToken} />}
@@ -87,6 +90,7 @@ export default function App() {
           </Stack.Group>
         )}
       </Stack.Navigator>
-    </NavigationContainer>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
